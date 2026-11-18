@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V3.1 和局語意修正版｜和風對戰賓果 5×5｜Battle Bingo（零依賴完整策略版）</title>
+  <style>
+    /* =========================================================================
+       1. 全局設計令牌與純原生響應式樣式 (100% Zero-CDN 離線獨立執行)
+       ========================================================================= */
+    :root {
+      --bg-washi: #f4efe6;
+      --bg-card: rgba(255, 253, 249, 0.92);
+      --border-soft: rgba(158, 126, 86, 0.34);
+      --wood-light: #edd09e;
+      --wood-mid: #dca860;
+      --wood-dark: #c58d42;
+      --wood-rim: #966122;
+      --ink-primary: #1f1d1a;
+      --ink-secondary: #575046;
+      --ink-muted: #7a7165;
+      --accent-vermilion: #c83e37;
+      --accent-vermilion-dark: #9e2b25;
+      --accent-jade: #1e7a5c;
+      --accent-gold: #c98a1e;
+      --font-serif: "Noto Serif TC", "Songti TC", "PMingLiU", Georgia, serif;
+      --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --shadow-sm: 0 2px 8px rgba(58, 38, 14, 0.08);
+      --shadow-md: 0 12px 26px -6px rgba(58, 38, 14, 0.22);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-washi);
+      background-image:
+        radial-gradient(rgba(168, 140, 100, 0.16) 1px, transparent 0),
+        radial-gradient(rgba(168, 140, 100, 0.09) 1px, transparent 0);
+      background-size: 28px 28px;
+      background-position: 0 0, 14px 14px;
+      color: var(--ink-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .font-serif-jp {
+      font-family: var(--font-serif);
+    }
+
+    /* 螢幕閱讀器專用即時語音播報區 */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* 高對比鍵盤無障礙焦點環 */
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 3px solid var(--accent-vermilion);
+      outline-offset: 2px;
+    }
+
+    /* =========================================================================
+       2. 頂部標題列與快捷按鈕
+       ========================================================================= */
+    .app-header {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 16px 16px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .seal-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #d4473f, #b5322b);
+      color: #faf6ef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-weight: 900;
+      font-size: 1.25rem;
+      letter-spacing: -1px;
+      border: 1.5px solid var(--accent-vermilion-dark);
+      box-shadow: 0 4px 10px rgba(181, 50, 43, 0.28);
+      flex-shrink: 0;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .app-title {
+      font-family: var(--font-serif);
+      font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+      font-weight: 900;
+      color: var(--ink-primary);
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle-tag {
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: rgba(158, 107, 41, 0.12);
+      color: #7c5119;
+      border: 1px solid rgba(158, 107, 41, 0.25);
+    }
+
+    .app-desc {
+      font-size: 0.84rem;
+      color: var(--ink-secondary);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* =========================================================================
+       3. 通用按鈕樣式
+       ========================================================================= */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 0.86rem;
+      padding: 8px 13px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease, filter 0.15s ease;
+      user-select: none;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(180deg, #ffffff 0%, #efe8dc 100%);
+      border-color: #c8b9a3;
+      color: var(--ink-primary);
+      box-shadow: 0 3px 0 #b5a58d, 0 4px 8px rgba(58, 38, 14, 0.08);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: linear-gradient(180deg, #ffffff 0%, #f7f3eb 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #b5a58d;
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #d84a42 0%, #b5322b 100%);
+      border-color: #9e2b25;
+      color: #ffffff;
+      box-shadow: 0 4px 0 #7f1f1a, 0 6px 14px rgba(181, 50, 43, 0.28);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #7f1f1a;
+    }
+
+    .btn-jade {
+      background: linear-gradient(180deg, #24916e 0%, #19694f 100%);
+      border-color: #13523d;
+      color: #ffffff;
+      box-shadow: 0 4px 0 #0f4231, 0 6px 14px rgba(30, 122, 92, 0.26);
+    }
+
+    .btn-jade:hover:not(:disabled) {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+
+    .btn-jade:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0f4231;
+    }
+
+    .btn-hint {
+      background: linear-gradient(180deg, #fffdf7 0%, #f5ebd4 100%);
+      border-color: #d4a64a;
+      color: #7d5410;
+      box-shadow: 0 3px 0 #c29438, 0 4px 8px rgba(145, 102, 22, 0.12);
+    }
+
+    .btn-hint:hover:not(:disabled) {
+      background: linear-gradient(180deg, #ffffff 0%, #faefd7 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-hint:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #c29438;
+    }
+
+    /* =========================================================================
+       4. 主佈局網格 (左側設定與戰績 / 右側雙盤面與號碼追蹤)
+       ========================================================================= */
+    .main-grid {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 6px 16px 24px;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .arena-column {
+        order: 1;
+      }
+      .sidebar-column {
+        order: 2;
+      }
+    }
+
+    .sidebar-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 15px 17px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel-heading {
+      font-family: var(--font-serif);
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .panel-heading-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .heading-bar {
+      width: 4px;
+      height: 16px;
+      border-radius: 99px;
+      background: var(--accent-vermilion);
+      display: inline-block;
+    }
+
+    .heading-bar.gold { background: var(--accent-gold); }
+    .heading-bar.jade { background: var(--accent-jade); }
+
+    .field-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-bottom: 5px;
+      letter-spacing: 0.04em;
+    }
+
+    .segmented-control {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+      background: rgba(196, 182, 160, 0.35);
+      padding: 4px;
+      border-radius: 11px;
+      margin-bottom: 10px;
+    }
+
+    .seg-btn {
+      border: none;
+      background: transparent;
+      padding: 7px 6px;
+      border-radius: 8px;
+      font-family: var(--font-sans);
+      font-size: 0.81rem;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .seg-btn:hover:not(:disabled) { color: var(--ink-primary); }
+
+    .seg-btn.active {
+      background: #ffffff;
+      color: var(--accent-vermilion);
+      font-weight: 700;
+      box-shadow: 0 2px 5px rgba(58, 38, 14, 0.12);
+    }
+
+    .seg-btn.active-dark {
+      background: #ffffff;
+      color: var(--ink-primary);
+      font-weight: 700;
+      box-shadow: 0 2px 5px rgba(58, 38, 14, 0.12);
+    }
+
+    .disabled-block {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .mode-note {
+      font-size: 0.75rem;
+      color: var(--ink-secondary);
+      background: rgba(158, 107, 41, 0.08);
+      border: 1px solid rgba(158, 107, 41, 0.18);
+      border-radius: 10px;
+      padding: 7px 10px;
+      margin-bottom: 10px;
+      line-height: 1.45;
+    }
+
+    /* =========================================================================
+       5. 跨局戰績統計與叫號歷史
+       ========================================================================= */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+
+    .stat-cell {
+      background: rgba(244, 239, 230, 0.75);
+      border: 1px solid rgba(158, 126, 86, 0.22);
+      border-radius: 11px;
+      padding: 7px 5px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.69rem;
+      color: var(--ink-muted);
+      display: block;
+    }
+
+    .stat-val {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+    }
+
+    .stat-val.win { color: var(--accent-vermilion); }
+
+    .stats-subrow {
+      font-size: 0.73rem;
+      color: var(--ink-secondary);
+    }
+
+    .text-link-btn {
+      background: none;
+      border: none;
+      color: var(--ink-muted);
+      font-size: 0.73rem;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .text-link-btn:hover { color: var(--accent-vermilion); }
+
+    .history-card {
+      display: flex;
+      flex-direction: column;
+      max-height: 260px;
+    }
+
+    .count-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      background: rgba(196, 182, 160, 0.35);
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding-right: 4px;
+      min-height: 110px;
+    }
+
+    .history-list::-webkit-scrollbar { width: 5px; }
+    .history-list::-webkit-scrollbar-thumb {
+      background: rgba(158, 107, 41, 0.38);
+      border-radius: 999px;
+    }
+
+    .history-empty {
+      text-align: center;
+      color: var(--ink-muted);
+      font-size: 0.8rem;
+      padding: 26px 8px;
+      font-style: italic;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      background: rgba(248, 245, 238, 0.95);
+      border: 1px solid rgba(158, 126, 86, 0.22);
+      border-radius: 9px;
+      padding: 5px 9px;
+      font-size: 0.78rem;
+    }
+
+    .caller-badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 5px;
+    }
+
+    .caller-badge.player {
+      background: rgba(200, 62, 55, 0.12);
+      color: var(--accent-vermilion);
+    }
+
+    .caller-badge.ai {
+      background: rgba(30, 122, 92, 0.12);
+      color: var(--accent-jade);
+    }
+
+    .called-num-chip {
+      font-family: var(--font-serif);
+      font-weight: 900;
+      font-size: 0.86rem;
+      color: var(--ink-primary);
+    }
+
+    /* =========================================================================
+       6. 右側對戰主舞台：狀態橫幅、佈局工具列、雙盤面並排
+       ========================================================================= */
+    .arena-column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .status-banner {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 11px 16px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .phase-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .phase-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent-gold);
+      flex-shrink: 0;
+    }
+
+    .phase-dot.battle {
+      background: var(--accent-vermilion);
+      animation: dotPulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes dotPulse {
+      0%, 100% { transform: scale(0.95); opacity: 0.85; }
+      50% { transform: scale(1.22); opacity: 1; }
+    }
+
+    .micro-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .phase-title {
+      font-family: var(--font-serif);
+      font-size: 1.06rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+    }
+
+    .feedback-pill {
+      flex: 1;
+      min-width: 220px;
+      text-align: center;
+      padding: 6px 12px;
+      border-radius: 12px;
+      background: #fef8eb;
+      border: 1px solid #ebd29b;
+      color: #7c5112;
+      font-size: 0.81rem;
+      font-weight: 600;
+    }
+
+    /* 賽前佈局工具列 */
+    .setup-toolbar {
+      background: linear-gradient(135deg, #fffdf9 0%, #f7efe0 100%);
+      border: 1.5px solid #d4a64a;
+      border-radius: var(--radius-md);
+      padding: 11px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .setup-toolbar.hidden {
+      display: none;
+    }
+
+    .setup-tools-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .next-fill-pill {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #7d5410;
+      background: rgba(201, 138, 30, 0.14);
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(201, 138, 30, 0.3);
+    }
+
+    /* 雙盤面並排網格 */
+    .boards-arena {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 720px) {
+      .boards-arena {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .board-card {
+      background:
+        repeating-linear-gradient(
+          91deg,
+          rgba(135, 86, 30, 0.04) 0px,
+          rgba(135, 86, 30, 0.04) 2px,
+          transparent 2px,
+          transparent 9px
+        ),
+        radial-gradient(circle at 35% 25%, var(--wood-light) 0%, var(--wood-mid) 56%, var(--wood-dark) 100%);
+      border: 2px solid var(--wood-rim);
+      border-radius: 22px;
+      padding: 14px 14px 12px;
+      box-shadow: var(--shadow-md), inset 0 2px 3px rgba(255, 245, 224, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .board-card.ai-board-card {
+      background:
+        repeating-linear-gradient(
+          91deg,
+          rgba(55, 48, 38, 0.05) 0px,
+          rgba(55, 48, 38, 0.05) 2px,
+          transparent 2px,
+          transparent 9px
+        ),
+        radial-gradient(circle at 35% 25%, #e5dccb 0%, #cfc1a8 58%, #b8a789 100%);
+      border-color: #7d6d52;
+    }
+
+    .board-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(255, 252, 246, 0.88);
+      border: 1px solid rgba(110, 72, 26, 0.25);
+      border-radius: 12px;
+      padding: 7px 12px;
+    }
+
+    .board-owner-title {
+      font-family: var(--font-serif);
+      font-weight: 800;
+      font-size: 0.96rem;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .line-counter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(200, 62, 55, 0.12);
+      color: var(--accent-vermilion);
+      border: 1px solid rgba(200, 62, 55, 0.28);
+    }
+
+    .line-counter-badge.ai-badge {
+      background: rgba(30, 122, 92, 0.12);
+      color: var(--accent-jade);
+      border-color: rgba(30, 122, 92, 0.28);
+    }
+
+    .tenpai-tag {
+      display: none;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #b45309;
+      border: 1px solid #f59e0b;
+      animation: tenpaiBlink 1.4s ease-in-out infinite;
+    }
+
+    .tenpai-tag.visible {
+      display: inline-block;
+    }
+
+    @keyframes tenpaiBlink {
+      0%, 100% { opacity: 0.85; transform: scale(0.98); }
+      50% { opacity: 1; transform: scale(1.04); }
+    }
+
+    /* 5x5 棋盤格子容器與 SVG 連線層 */
+    .bingo-grid-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: rgba(94, 58, 18, 0.22);
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: inset 0 2px 6px rgba(52, 30, 8, 0.35);
+    }
+
+    .bingo-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .bingo-lines-svg {
+      position: absolute;
+      inset: 6px;
+      width: calc(100% - 12px);
+      height: calc(100% - 12px);
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .bingo-win-stroke {
+      stroke: rgba(200, 62, 55, 0.86);
+      stroke-width: 7;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 4px rgba(255, 245, 220, 0.9));
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: drawBingoLine 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .bingo-win-stroke.ai-stroke {
+      stroke: rgba(30, 122, 92, 0.86);
+    }
+
+    @keyframes drawBingoLine {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* 單一賓果方格按鈕 */
+    .bingo-cell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      border: 1.5px solid rgba(130, 86, 36, 0.35);
+      background: linear-gradient(180deg, #fffdf9 0%, #f6efe2 100%);
+      box-shadow: 0 2px 4px rgba(58, 38, 14, 0.14);
+      font-family: var(--font-serif);
+      font-size: clamp(1.05rem, 2.3vw, 1.4rem);
+      font-weight: 900;
+      color: var(--ink-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.12s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+      user-select: none;
+    }
+
+    .bingo-cell:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: #ffffff;
+      box-shadow: 0 5px 10px rgba(58, 38, 14, 0.2);
+      z-index: 5;
+    }
+
+    .bingo-cell:disabled {
+      cursor: default;
+    }
+
+    /* 佈局階段空格樣式 */
+    .bingo-cell.setup-empty {
+      background: rgba(255, 252, 246, 0.55);
+      border-style: dashed;
+      border-color: rgba(130, 86, 36, 0.48);
+      color: rgba(122, 113, 101, 0.6);
+      font-size: 0.82rem;
+      font-family: var(--font-sans);
+    }
+
+    /* 中心天元格微幅底色標記 */
+    .bingo-cell.center-cell:not(.marked):not(.fog-hidden) {
+      background: linear-gradient(180deg, #fffaf0 0%, #f7e6c4 100%);
+      border-color: rgba(201, 138, 30, 0.55);
+    }
+
+    /* 已圈選狀態：和風硃砂印章圈 */
+    .bingo-cell.marked {
+      background: linear-gradient(180deg, #fff5f4 0%, #f9e3e1 100%);
+      border-color: rgba(200, 62, 55, 0.45);
+      color: var(--accent-vermilion-dark);
+    }
+
+    .bingo-cell.marked::after {
+      content: "";
+      position: absolute;
+      inset: 11%;
+      border-radius: 50%;
+      border: 3px solid var(--accent-vermilion);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 0 6px rgba(200, 62, 55, 0.2);
+      animation: stampCircle 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      pointer-events: none;
+    }
+
+    .bingo-cell.ai-cell.marked {
+      background: linear-gradient(180deg, #f2fbf7 0%, #dcf2e9 100%);
+      border-color: rgba(30, 122, 92, 0.45);
+      color: #124e3b;
+    }
+
+    .bingo-cell.ai-cell.marked::after {
+      border-color: var(--accent-jade);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 0 6px rgba(30, 122, 92, 0.2);
+    }
+
+    @keyframes stampCircle {
+      0% { transform: scale(1.45); opacity: 0.3; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* 電腦迷霧未揭曉格子 */
+    .bingo-cell.fog-hidden {
+      background: linear-gradient(145deg, #e8dfd0 0%, #d6cab5 100%);
+      color: rgba(92, 78, 58, 0.55);
+      border-color: rgba(110, 94, 70, 0.35);
+      font-family: var(--font-serif);
+    }
+
+    /* 聽牌呼吸光暈（差 1 顆即連線） */
+    .bingo-cell.tenpai-cell {
+      border: 2px solid #f59e0b;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.72);
+      animation: tenpaiCellPulse 1.35s ease-in-out infinite;
+      z-index: 6;
+    }
+
+    @keyframes tenpaiCellPulse {
+      0%, 100% { background-color: #fffdf9; transform: scale(1); }
+      50% { background-color: #fef3c7; transform: scale(1.03); }
+    }
+
+    /* 最佳喊號建議光圈（翡翠綠） */
+    .bingo-cell.hint-cell {
+      border: 2.5px solid #10b981 !important;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.9) !important;
+      background: #ecfdf5 !important;
+      z-index: 8;
+    }
+
+    /* =========================================================================
+       7. 1～25 號碼總覽追蹤表
+       ========================================================================= */
+    .tracker-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tracker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink-secondary);
+    }
+
+    .number-pool-grid {
+      display: grid;
+      grid-template-columns: repeat(13, 1fr);
+      gap: 5px;
+    }
+
+    @media (max-width: 680px) {
+      .number-pool-grid {
+        grid-template-columns: repeat(9, 1fr);
+      }
+    }
+
+    .pool-chip {
+      aspect-ratio: 1 / 1;
+      border-radius: 7px;
+      border: 1px solid rgba(158, 126, 86, 0.3);
+      background: #ffffff;
+      font-family: monospace;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pool-chip.called-player {
+      background: var(--accent-vermilion);
+      border-color: var(--accent-vermilion-dark);
+      color: #ffffff;
+    }
+
+    .pool-chip.called-ai {
+      background: var(--accent-jade);
+      border-color: #13523d;
+      color: #ffffff;
+    }
+
+    /* =========================================================================
+       8. 彈窗 Modal 樣式
+       ========================================================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: rgba(24, 18, 12, 0.58);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal-card {
+      background: #faf6ef;
+      border: 2px solid var(--wood-rim);
+      border-radius: 24px;
+      max-width: 490px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-center { text-align: center; }
+
+    .modal-seal {
+      width: 62px;
+      height: 62px;
+      margin: 0 auto 14px;
+      border-radius: 18px;
+      background: var(--accent-vermilion);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-size: 1.85rem;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(200, 62, 55, 0.32);
+    }
+
+    .modal-seal.lose {
+      background: #44403c;
+      color: #fef3c7;
+    }
+
+    .modal-title {
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--ink-primary);
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 0.9rem;
+      color: var(--ink-secondary);
+      margin-bottom: 18px;
+      line-height: 1.55;
+    }
+
+    .modal-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: rgba(158, 107, 41, 0.08);
+      border: 1px solid rgba(158, 107, 41, 0.2);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 18px;
+      font-size: 0.85rem;
+    }
+
+    .modal-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .rule-section {
+      background: #ffffff;
+      border: 1px solid rgba(158, 126, 86, 0.25);
+      border-radius: 14px;
+      padding: 13px 15px;
+      margin-bottom: 12px;
+      font-size: 0.86rem;
+      color: var(--ink-secondary);
+    }
+
+    .rule-section h4 {
+      font-family: var(--font-serif);
+      color: var(--ink-primary);
+      font-size: 0.96rem;
+      margin-bottom: 6px;
+    }
+
+    .rule-section ul { padding-left: 18px; }
+    .rule-section li { margin-bottom: 4px; }
+
+    .app-footer {
+      text-align: center;
+      padding: 10px 16px 16px;
+      font-size: 0.76rem;
+      color: var(--ink-muted);
+    }
+  </style>
+</head>
+<body>
+  <!-- 螢幕閱讀器即時語音播報區 -->
+  <div id="ariaLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- 頂部標題列 -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="seal-badge" aria-hidden="true">賓果</div>
+      <div>
+        <div class="title-row">
+          <h1 class="app-title">和風對戰賓果 5×5</h1>
+          <span class="subtitle-tag">Battle Bingo · 期望值加權 AI</span>
+        </div>
+        <p class="app-desc">
+          配置 1～25 幸運陣型 · 雙方輪流喊號圈選 · <strong>率先連成目標線數者勝</strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" id="hintBtn" class="btn btn-hint" onclick="showBestMoveHint()" disabled>
+        <span>💡 最佳喊號提示</span>
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="openRulesModal()">
+        <span>📖 規則與策略說明</span>
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="resetToSetup()">
+        <span>↻ 重新佈局</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 主遊戲區 -->
+  <main class="main-grid">
+    <!-- 左側設定、戰績與叫號歷史 -->
+    <aside class="sidebar-column">
+      <!-- 1. 對局設定卡片 -->
+      <section class="panel-card" aria-label="對局設定">
+        <div class="panel-heading">
+          <div class="panel-heading-title">
+            <span class="heading-bar"></span>
+            <span>對局規則設定</span>
+          </div>
+        </div>
+
+        <div id="settingsLockGroup">
+          <span class="field-label">勝利目標線數</span>
+          <div class="segmented-control" role="group" aria-label="勝利目標線數">
+            <button type="button" id="target-3" class="seg-btn active" onclick="setTargetLines(3)">先連 3 條線勝</button>
+            <button type="button" id="target-5" class="seg-btn" onclick="setTargetLines(5)">先連 5 條線勝</button>
+          </div>
+
+          <span class="field-label">電腦 AI 強度</span>
+          <div class="segmented-control" role="group" aria-label="AI 強度">
+            <button type="button" id="ai-smart" class="seg-btn active" onclick="setAiDifficulty('smart')">進階策略 AI</button>
+            <button type="button" id="ai-random" class="seg-btn" onclick="setAiDifficulty('random')">入門隨機 AI</button>
+          </div>
+
+          <div id="aiModeNote" class="mode-note">
+            <strong>V3 進階策略 AI：</strong>即時計算 12 條連線期望值權重（聽牌 +1000、三連 +120），優先搶佔多線交會要點並規避玩家熱門路線。
+          </div>
+
+          <span class="field-label">先後手順序</span>
+          <div class="segmented-control" role="group" aria-label="先後手順序">
+            <button type="button" id="first-player" class="seg-btn active-dark" onclick="setFirstTurn('player')">玩家先喊</button>
+            <button type="button" id="first-ai" class="seg-btn" onclick="setFirstTurn('ai')">電腦先喊</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 跨局戰績統計卡片 -->
+      <section class="panel-card" aria-label="跨局戰績統計">
+        <div class="panel-heading">
+          <div class="panel-heading-title">
+            <span class="heading-bar jade"></span>
+            <span>跨局戰績統計</span>
+          </div>
+          <button type="button" class="text-link-btn" onclick="resetStats()">歸零統計</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-cell">
+            <span class="stat-label">入門 AI 勝/負</span>
+            <span class="stat-val" id="statRandomRecord">0 勝 0 負</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">進階 AI 勝/負</span>
+            <span class="stat-val win" id="statSmartRecord">0 勝 0 負</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">總勝率</span>
+            <span class="stat-val" id="statWinRate">0%</span>
+          </div>
+        </div>
+        <div class="stats-subrow" id="statTotalSummary">
+          累計完賽：0 局
+        </div>
+      </section>
+
+      <!-- 3. 叫號歷史紀錄卡片 -->
+      <section class="panel-card history-card" aria-label="叫號歷史紀錄">
+        <div class="panel-heading">
+          <div class="panel-heading-title">
+            <span class="heading-bar gold"></span>
+            <span>叫號進度紀錄</span>
+          </div>
+          <span id="callCountBadge" class="count-pill">已喊 0 / 25</span>
+        </div>
+        <div id="callHistoryList" class="history-list">
+          <div class="history-empty">完成賽前佈局並點擊「開始對戰」後顯示紀錄</div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- 右側主對戰舞台 -->
+    <section class="arena-column" aria-label="賓果雙盤面舞台">
+      <!-- 當前回合與狀態橫幅 -->
+      <div class="status-banner">
+        <div class="phase-box">
+          <span id="phaseDot" class="phase-dot" aria-hidden="true"></span>
+          <div>
+            <div class="micro-label">對局階段</div>
+            <div id="phaseTitleText" class="phase-title">賽前佈局階段</div>
+          </div>
+        </div>
+
+        <div id="feedbackBanner" class="feedback-pill">
+          可直接隨機洗牌，或點擊空格手動依序填入 1～25
+        </div>
+      </div>
+
+      <!-- 賽前佈局工具列 (Setup Phase 專用) -->
+      <div id="setupToolbar" class="setup-toolbar">
+        <div class="setup-tools-group">
+          <button type="button" class="btn btn-secondary" onclick="shufflePlayerBoard()">
+            <span>🎲 隨機洗牌</span>
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="applySpiralPreset()">
+            <span>🌀 螺旋對稱陣型</span>
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="clearPlayerBoard()">
+            <span>🧹 清空盤面</span>
+          </button>
+        </div>
+
+        <div class="setup-tools-group">
+          <span id="nextFillStatus" class="next-fill-pill">盤面已就緒（25/25）</span>
+          <button type="button" id="startBattleBtn" class="btn btn-jade" onclick="startBattle()">
+            <span>⚔ 開始對戰</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 雙盤面並排對決區 -->
+      <div class="boards-arena">
+        <!-- 玩家 5x5 盤面 -->
+        <div class="board-card" aria-label="玩家 5乘5 賓果盤">
+          <div class="board-header-bar">
+            <div class="board-owner-title">
+              <span>🀄 我方盤面</span>
+              <span id="playerTenpaiTag" class="tenpai-tag">聽牌中！</span>
+            </div>
+            <div class="line-counter-badge">
+              <span>連線數：</span>
+              <span id="playerLineCount">0</span>
+              <span>/</span>
+              <span id="playerTargetDisplay">3</span>
+            </div>
+          </div>
+
+          <div class="bingo-grid-wrapper">
+            <svg id="playerLinesSvg" viewBox="0 0 500 500" class="bingo-lines-svg" aria-hidden="true"></svg>
+            <div id="playerGrid" class="bingo-grid" role="grid" aria-label="玩家賓果格子"></div>
+          </div>
+        </div>
+
+        <!-- 電腦 5x5 迷霧盤面 -->
+        <div class="board-card ai-board-card" aria-label="電腦 5乘5 迷霧賓果盤">
+          <div class="board-header-bar">
+            <div class="board-owner-title">
+              <span id="aiBoardTitleText">🤖 電腦盤面（迷霧）</span>
+              <span id="aiTenpaiTag" class="tenpai-tag">電腦聽牌！</span>
+            </div>
+            <div class="line-counter-badge ai-badge">
+              <span>連線數：</span>
+              <span id="aiLineCount">0</span>
+              <span>/</span>
+              <span id="aiTargetDisplay">3</span>
+            </div>
+          </div>
+
+          <div class="bingo-grid-wrapper">
+            <svg id="aiLinesSvg" viewBox="0 0 500 500" class="bingo-lines-svg" aria-hidden="true"></svg>
+            <div id="aiGrid" class="bingo-grid" role="grid" aria-label="電腦賓果格子"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1～25 號碼總覽追蹤表 -->
+      <div class="tracker-card" aria-label="1到25號碼追蹤總覽">
+        <div class="tracker-header">
+          <span>1～25 號碼喊號追蹤總覽</span>
+          <span style="font-size: 0.74rem; font-weight: 600;">
+            <span style="color: var(--accent-vermilion);">■ 玩家喊出</span> ·
+            <span style="color: var(--accent-jade);">■ 電腦喊出</span> ·
+            <span style="color: var(--ink-muted);">□ 未喊</span>
+          </span>
+        </div>
+        <div id="numberPoolGrid" class="number-pool-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    經典策略數位遊戲 · 5×5 對戰賓果（期望值加權與風險迴避 AI · 100% 離線原生單檔版）
+  </footer>
+
+  <!-- 勝負結算彈窗 -->
+  <div id="gameOverModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card modal-center">
+      <div id="modalIconBadge" class="modal-seal">勝</div>
+      <h3 id="modalTitle" class="modal-title">Bingo！恭喜獲勝！</h3>
+      <p id="modalSubtitle" class="modal-desc">你率先達成了目標連線數，電腦迷霧盤面已全面揭曉！</p>
+
+      <div class="modal-summary-grid">
+        <div>
+          <span class="micro-label" style="display:block;">最終連線比數</span>
+          <strong id="modalScoreSummary">我方 3 線 vs 電腦 2 線</strong>
+        </div>
+        <div>
+          <span class="micro-label" style="display:block;">總喊號手數</span>
+          <strong id="modalCallsSummary">共 14 手</strong>
+        </div>
+      </div>
+
+      <div class="modal-btn-row">
+        <button type="button" class="btn btn-secondary" onclick="closeGameOverModal()">檢視揭曉盤面</button>
+        <button type="button" class="btn btn-primary" onclick="resetToSetup()">再來一局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 規則與策略說明彈窗 -->
+  <div id="rulesModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="rulesModalTitle">
+    <div class="modal-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(158, 126, 86, 0.3);">
+        <h3 id="rulesModalTitle" class="font-serif-jp" style="font-size: 1.25rem; font-weight: 900;">
+          對戰賓果規則與數學策略
+        </h3>
+        <button type="button" class="btn btn-secondary" style="padding: 4px 10px;" onclick="closeRulesModal()" aria-label="關閉視窗">✕</button>
+      </div>
+
+      <div class="rule-section">
+        <h4>1. 遊戲流程（佈局 → 輪流喊號 → 連線決勝）</h4>
+        <ul>
+          <li><strong>賽前佈局：</strong>將 <code>1～25</code> 不重複填入自己的 5×5 盤面（可用隨機洗牌、螺旋陣型，或手動點擊空格依序填號；再次點擊已填格子可清除重填）。</li>
+          <li><strong>輪流喊號：</strong>雙方輪流點擊未圈選的數字喊出，該數字會在<strong>我方與電腦盤面同時被圈選</strong>。</li>
+          <li><strong>獲勝判定：</strong>橫線（5條）、直線（5條）、大對角線（2條）共 12 條線中，率先連成 <strong>3 條線（或 5 條線）</strong>者獲勝！若同一手雙方同時達標，則由<strong>主動喊號者優先獲勝</strong>。</li>
+        </ul>
+      </div>
+
+      <div class="rule-section">
+        <h4>2. 進階 AI 演算法與制勝策略</h4>
+        <ul>
+          <li><strong>交叉點價值最大化：</strong>正中央天元格（第 3 列第 3 行）同時橫跨 4 條線，四個角落與大對角線各橫跨 3 條線，其餘邊格僅跨 2 條線。</li>
+          <li><strong>期望值加權模型：</strong>AI 會針對 12 條連線計算完成度權重（差 1 顆連線 <code>+1000</code> 分、三連 <code>+120</code> 分、兩連 <code>+30</code> 分），並結合玩家主動喊號歷史避開玩家的高價值路線。</li>
+          <li><strong>聽牌提示：</strong>當某條線已圈滿 4 顆（差 1 顆連線）時，該聽牌格會自動亮起<strong>琥珀色呼吸光暈</strong>。</li>
+        </ul>
+      </div>
+
+      <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 6px;" onclick="closeRulesModal()">
+        我明白了，開始佈局
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * 1. 5x5 賓果 12 條致勝連線定義與座標映射
+     * =========================================================================
+     */
+    const WIN_LINES = [
+      // 5 條橫線
+      [0, 1, 2, 3, 4],
+      [5, 6, 7, 8, 9],
+      [10, 11, 12, 13, 14],
+      [15, 16, 17, 18, 19],
+      [20, 21, 22, 23, 24],
+      // 5 條直線
+      [0, 5, 10, 15, 20],
+      [1, 6, 11, 16, 21],
+      [2, 7, 12, 17, 22],
+      [3, 8, 13, 18, 23],
+      [4, 9, 14, 19, 24],
+      // 2 條大對角線
+      [0, 6, 12, 18, 24],
+      [4, 8, 12, 16, 20]
+    ];
+
+    // 25 格各自的交叉連線數（天元 4 線、對角線 3 線、其餘 2 線）
+    const CELL_LINE_DEGREE = Array.from({ length: 25 }, (_, idx) =>
+      WIN_LINES.filter((line) => line.includes(idx)).length
+    );
+
+    /**
+     * =========================================================================
+     * 2. 跨局戰績統計 (localStorage 持久化)
+     * =========================================================================
+     */
+    const STATS_STORAGE_KEY = 'battle_bingo_5x5_stats_v1';
+
+    function loadStats() {
+      try {
+        const raw = localStorage.getItem(STATS_STORAGE_KEY);
+        if (raw) {
+          const p = JSON.parse(raw);
+          return {
+            randomWin: Number(p.randomWin) || 0,
+            randomLoss: Number(p.randomLoss) || 0,
+            smartWin: Number(p.smartWin) || 0,
+            smartLoss: Number(p.smartLoss) || 0
+          };
+        }
+      } catch (e) {}
+      return { randomWin: 0, randomLoss: 0, smartWin: 0, smartLoss: 0 };
+    }
+
+    let gameStats = loadStats();
+
+    function saveStats() {
+      try {
+        localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(gameStats));
+      } catch (e) {}
+    }
+
+    function recordGameResult(difficulty, playerWon) {
+      if (difficulty === 'random') {
+        if (playerWon) gameStats.randomWin++;
+        else gameStats.randomLoss++;
+      } else {
+        if (playerWon) gameStats.smartWin++;
+        else gameStats.smartLoss++;
+      }
+      saveStats();
+      renderStatsUI();
+    }
+
+    function resetStats() {
+      gameStats = { randomWin: 0, randomLoss: 0, smartWin: 0, smartLoss: 0 };
+      saveStats();
+      renderStatsUI();
+      announceLive('戰績統計已歸零');
+    }
+
+    function renderStatsUI() {
+      document.getElementById('statRandomRecord').textContent = `${gameStats.randomWin} 勝 ${gameStats.randomLoss} 負`;
+      document.getElementById('statSmartRecord').textContent = `${gameStats.smartWin} 勝 ${gameStats.smartLoss} 負`;
+
+      const totalGames = gameStats.randomWin + gameStats.randomLoss + gameStats.smartWin + gameStats.smartLoss;
+      const totalWins = gameStats.randomWin + gameStats.smartWin;
+      const winRate = totalGames > 0 ? Math.round((totalWins / totalGames) * 100) : 0;
+
+      document.getElementById('statWinRate').textContent = `${winRate}%`;
+      document.getElementById('statTotalSummary').textContent = `累計完賽：${totalGames} 局`;
+    }
+
+    /**
+     * =========================================================================
+     * 3. 遊戲核心狀態
+     * =========================================================================
+     */
+    let state = {
+      phase: 'setup', targetLines: 3, aiDifficulty: 'smart', firstTurn: 'player', currentTurn: 'player',
+      playerBoard: Array(25).fill(0), aiBoard: Array(25).fill(0),
+      calledMap: new Map(), callHistory: [], hintNumber: null, isAiThinking: false,
+      roundId: 0, resultRecorded: false
+    };
+
+    let aiTimer = null;
+    let gameOverTimer = null;
+    let announceTimer = null;
+
+    function clearPendingTimers() {
+      clearTimeout(aiTimer); clearTimeout(gameOverTimer); clearTimeout(announceTimer);
+      aiTimer = gameOverTimer = announceTimer = null;
+    }
+    function invalidateAsyncTasks() { clearPendingTimers(); state.roundId++; }
+    function isCurrentRound(id) { return state.roundId === id; }
+    function isValidCaller(caller) { return caller === 'player' || caller === 'ai'; }
+    function isValidCallNumber(num, requireAvailable = true) {
+      return Number.isInteger(num) && num >= 1 && num <= 25 &&
+        (!requireAvailable || !state.calledMap.has(num));
+    }
+    function getAvailableNumbers() {
+      return Array.from({ length: 25 }, (_, i) => i + 1).filter((n) => !state.calledMap.has(n));
+    }
+    function canCallerAct(caller) {
+      return state.phase === 'battle' && isValidCaller(caller) && state.currentTurn === caller;
+    }
+
+    function announceLive(msg) {
+      const region = document.getElementById('ariaLiveRegion');
+      if (!region) return;
+      clearTimeout(announceTimer); announceTimer = null; region.textContent = '';
+      const expectedRoundId = state.roundId;
+      announceTimer = setTimeout(() => {
+        announceTimer = null;
+        if (isCurrentRound(expectedRoundId)) region.textContent = String(msg ?? '');
+      }, 20);
+    }
+
+    function showFeedback(text) {
+      const banner = document.getElementById('feedbackBanner');
+      if (banner) banner.textContent = text;
+    }
+
+    /**
+     * =========================================================================
+     * 4. 賽前佈局工具 (隨機洗牌 / 手動依序填號 / 螺旋對稱陣型 / 清空)
+     * =========================================================================
+     */
+    function generateShuffled1To25() {
+      const arr = Array.from({ length: 25 }, (_, i) => i + 1);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function shufflePlayerBoard() {
+      if (state.phase !== 'setup') return;
+      state.playerBoard = generateShuffled1To25();
+      showFeedback('已隨機洗牌填入 1～25，可隨時點擊「開始對戰」');
+      announceLive('已隨機洗牌填入 1 到 25');
+      updateUI();
+    }
+
+    function applySpiralPreset() {
+      if (state.phase !== 'setup') return;
+      // 經典中心螺旋對稱陣型：將高關注度數字配置於天元與對角線交叉點
+      state.playerBoard = [
+        7,  18, 12, 19, 8,
+        20, 3,  14, 4,  21,
+        13, 15, 1,  16, 17,
+        22, 5,  24, 6,  23,
+        9,  25, 11, 10, 2
+      ];
+      showFeedback('已套用「螺旋對稱陣型」（1 號坐鎮天元、關鍵數字佈滿對角線）');
+      announceLive('已套用螺旋對稱陣型');
+      updateUI();
+    }
+
+    function clearPlayerBoard() {
+      if (state.phase !== 'setup') return;
+      state.playerBoard = Array(25).fill(0);
+      showFeedback('已清空盤面，請依序點擊格子填入數字 1～25');
+      announceLive('已清空盤面，請從 1 開始依序點擊空格填入');
+      updateUI();
+    }
+
+    function getSmallestMissingNumber(board) {
+      const used = new Set(board.filter((n) => n > 0));
+      for (let num = 1; num <= 25; num++) {
+        if (!used.has(num)) return num;
+      }
+      return null;
+    }
+
+    function handlePlayerCellClick(idx) {
+      if (!Number.isInteger(idx) || idx < 0 || idx >= 25) return;
+      if (state.phase === 'setup') {
+        const currentVal = state.playerBoard[idx];
+        if (currentVal !== 0) {
+          state.playerBoard[idx] = 0;
+          const nextNum = getSmallestMissingNumber(state.playerBoard);
+          showFeedback(`已清除數字 ${currentVal}，下一個待填數字為 ${nextNum}`);
+          announceLive(`已清除數字 ${currentVal}，下一個待填數字為 ${nextNum}`);
+        } else {
+          const nextNum = getSmallestMissingNumber(state.playerBoard);
+          if (nextNum !== null) {
+            state.playerBoard[idx] = nextNum;
+            const afterNext = getSmallestMissingNumber(state.playerBoard);
+            if (afterNext !== null) {
+              showFeedback(`已填入 ${nextNum}，請點擊下一個空格填入 ${afterNext}`);
+              announceLive(`已填入 ${nextNum}，下一個待填 ${afterNext}`);
+            } else {
+              showFeedback('25 格全部填滿！點擊「⚔ 開始對戰」即可開局');
+              announceLive('25 格全部填滿，可以開始對戰');
+            }
+          }
+        }
+        updateUI(); return;
+      }
+      if (state.phase === 'battle' && state.currentTurn === 'player' && !state.isAiThinking) {
+        const num = state.playerBoard[idx];
+        if (!isValidCallNumber(num)) {
+          if (Number.isInteger(num) && state.calledMap.has(num)) showFeedback(`數字 ${num} 已經喊過了，請選擇尚未圈選的數字`);
+          return;
+        }
+        executeCallNumber(num, 'player');
+      }
+    }
+
+    /**
+     * =========================================================================
+     * 5. 開始對戰與核心喊號/連線判定引擎
+     * =========================================================================
+     */
+    function startBattle() {
+      if (state.phase !== 'setup') return;
+      if (getSmallestMissingNumber(state.playerBoard) !== null) {
+        showFeedback('請先完成 1～25 的盤面配置'); return;
+      }
+      invalidateAsyncTasks();
+      state.phase = 'battle'; state.aiBoard = generateShuffled1To25();
+      state.calledMap = new Map(); state.callHistory = []; state.hintNumber = null;
+      state.currentTurn = state.firstTurn; state.isAiThinking = state.firstTurn === 'ai';
+      state.resultRecorded = false; closeGameOverModal();
+      if (state.firstTurn === 'player') {
+        showFeedback('對戰開始！請在左側我方盤面點擊一個數字喊出');
+        announceLive('對戰開始，輪到玩家先喊號');
+      } else {
+        showFeedback('對戰開始！電腦先手正在挑選首個數字...');
+        announceLive('對戰開始，電腦先手思考中');
+      }
+      updateUI();
+      if (state.firstTurn === 'ai') scheduleAiTurn();
+    }
+
+    function evaluateBoardLines(board, calledMap) {
+      const completedLines = [];
+      const tenpaiIndices = new Set();
+
+      WIN_LINES.forEach((line, lineIdx) => {
+        let markedCount = 0;
+        let unmarkedCell = -1;
+
+        for (const cellIdx of line) {
+          if (calledMap.has(board[cellIdx])) {
+            markedCount++;
+          } else {
+            unmarkedCell = cellIdx;
+          }
+        }
+
+        if (markedCount === 5) {
+          completedLines.push(lineIdx);
+        } else if (markedCount === 4 && unmarkedCell !== -1) {
+          tenpaiIndices.add(unmarkedCell);
+        }
+      });
+
+      return {
+        completedLines,
+        tenpaiIndices
+      };
+    }
+
+    function executeCallNumber(num, caller) {
+      if (!canCallerAct(caller) || !isValidCallNumber(num)) return false;
+      if (caller === 'ai' && !state.isAiThinking) return false;
+      if (caller === 'player' && state.isAiThinking) return false;
+      state.calledMap.set(num, caller); state.hintNumber = null;
+      const playerEval = evaluateBoardLines(state.playerBoard, state.calledMap);
+      const aiEval = evaluateBoardLines(state.aiBoard, state.calledMap);
+      const step = state.callHistory.length + 1;
+      state.callHistory.push({ step, caller, num, playerLines: playerEval.completedLines.length, aiLines: aiEval.completedLines.length });
+      announceLive(`第 ${step} 手，${caller === 'player' ? '玩家' : '電腦'}喊出 ${num} 號。目前我方 ${playerEval.completedLines.length} 線，電腦 ${aiEval.completedLines.length} 線`);
+      const playerReached = playerEval.completedLines.length >= state.targetLines;
+      const aiReached = aiEval.completedLines.length >= state.targetLines;
+      if (playerReached || aiReached) {
+        state.phase = 'gameover'; state.isAiThinking = false; clearTimeout(aiTimer); aiTimer = null;
+        const outcome = playerReached && aiReached
+          ? (caller === 'player' ? 'player-win' : 'ai-win')
+          : (playerReached ? 'player-win' : 'ai-win');
+        updateUI(); scheduleGameOver(outcome, playerEval.completedLines.length, aiEval.completedLines.length); return true;
+      }
+      if (state.calledMap.size >= 25) {
+        state.phase = 'gameover'; state.isAiThinking = false; updateUI();
+        scheduleGameOver('draw', playerEval.completedLines.length, aiEval.completedLines.length); return true;
+      }
+      if (caller === 'player') {
+        state.currentTurn = 'ai'; state.isAiThinking = true;
+        showFeedback(`你喊出了 ${num} 號，電腦正在推演下一手...`); updateUI(); scheduleAiTurn();
+      } else {
+        state.currentTurn = 'player'; state.isAiThinking = false;
+        showFeedback(`電腦喊出了 ${num} 號，輪到你選號！`); updateUI();
+      }
+      return true;
+    }
+
+    function scheduleGameOver(outcome, playerLines, aiLines) {
+      clearTimeout(gameOverTimer); gameOverTimer = null;
+      const expectedRoundId = state.roundId;
+      const expectedCallCount = state.callHistory.length;
+      gameOverTimer = setTimeout(() => {
+        gameOverTimer = null;
+        if (!isCurrentRound(expectedRoundId) || state.phase !== 'gameover' || state.callHistory.length !== expectedCallCount) return;
+        handleGameOver(outcome, playerLines, aiLines);
+      }, 480);
+    }
+
+    /**
+     * =========================================================================
+     * 6. 進階策略 AI 演算法（12 條連線期望值權重 + 風險迴避）
+     * =========================================================================
+     */
+    function scheduleAiTurn(delay = 560) {
+      clearTimeout(aiTimer); aiTimer = null;
+      if (state.phase !== 'battle' || state.currentTurn !== 'ai') {
+        state.isAiThinking = false; updateUI(); return;
+      }
+      state.isAiThinking = true;
+      const expectedRoundId = state.roundId;
+      const expectedCallCount = state.callHistory.length;
+      aiTimer = setTimeout(() => {
+        aiTimer = null;
+        if (!isCurrentRound(expectedRoundId) || state.phase !== 'battle' || state.currentTurn !== 'ai' || !state.isAiThinking) return;
+        if (state.callHistory.length !== expectedCallCount) { state.isAiThinking = false; updateUI(); return; }
+        const chosenNum = computeAiCallNumber();
+        if (!isValidCallNumber(chosenNum)) { handleAiSelectionFailure(); return; }
+        executeCallNumber(chosenNum, 'ai');
+      }, delay);
+    }
+
+    function handleAiSelectionFailure() {
+      state.isAiThinking = false;
+      const available = getAvailableNumbers();
+      if (available.length === 0) {
+        handleNoAvailableNumbers();
+        return false;
+      }
+
+      // 優先採用不會讓玩家立即獲勝的安全 fallback。
+      const safe = available.filter((num) => {
+        const outcome = evaluateImmediateOutcome(num, 'ai');
+        return outcome && !outcome.aiLosesImmediately;
+      });
+      const pool = safe.length > 0 ? safe : available;
+      const fallback = pool[Math.floor(Math.random() * pool.length)];
+
+      console.warn('AI 評分未產生合法結果，改用安全 fallback：', fallback);
+      state.isAiThinking = true;
+      const success = executeCallNumber(fallback, 'ai');
+      if (!success) {
+        state.isAiThinking = false;
+        showFeedback('AI 選號發生異常，請重新開始對局');
+        announceLive('電腦選號發生異常，請重新開始對局');
+        updateUI();
+      }
+      return success;
+    }
+
+    function handleNoAvailableNumbers() {
+      state.isAiThinking = false;
+      const p = evaluateBoardLines(state.playerBoard, state.calledMap).completedLines.length;
+      const a = evaluateBoardLines(state.aiBoard, state.calledMap).completedLines.length;
+      // 依 5x5 規則，25 號全叫完前應早已達標；走到這裡代表防禦性異常。
+      console.error('無可用號碼但對局尚未正常結束', { playerLines: p, aiLines: a });
+      state.phase = 'gameover';
+      updateUI();
+      // 保持既有結算介面；以完成線較多者決定，平手依目前 caller 優先規則交由 AI。
+      scheduleGameOver('draw', p, a);
+    }
+
+    function evaluateImmediateOutcome(num, caller = 'ai') {
+      if (!isValidCallNumber(num) || !isValidCaller(caller)) return null;
+      const simulatedMap = new Map(state.calledMap);
+      simulatedMap.set(num, caller);
+      const playerLines = evaluateBoardLines(state.playerBoard, simulatedMap).completedLines.length;
+      const aiLines = evaluateBoardLines(state.aiBoard, simulatedMap).completedLines.length;
+      const playerReached = playerLines >= state.targetLines;
+      const aiReached = aiLines >= state.targetLines;
+      return {
+        num, playerLines, aiLines, playerReached, aiReached,
+        aiWinsAsCaller: caller === 'ai' && aiReached,
+        playerWinsAsCaller: caller === 'player' && playerReached,
+        aiLosesImmediately: caller === 'ai' && playerReached && !aiReached
+      };
+    }
+
+    function computeAiCallNumber() {
+      const availableNums = getAvailableNumbers();
+      if (availableNums.length === 0) return null;
+
+      const analyzed = availableNums.map((num) => ({
+        num,
+        outcome: evaluateImmediateOutcome(num, 'ai')
+      })).filter((item) => item.outcome !== null);
+
+      // AI 是主動叫號者。只要 AI 本手達標，即使雙方同時達標，仍由 AI 獲勝。
+      const immediateWins = analyzed.filter((item) => item.outcome.aiWinsAsCaller);
+      if (immediateWins.length > 0) {
+        const maxAiLines = Math.max(...immediateWins.map((item) => item.outcome.aiLines));
+        const bestWins = immediateWins.filter((item) => item.outcome.aiLines === maxAiLines);
+        return bestWins[Math.floor(Math.random() * bestWins.length)].num;
+      }
+
+      // 若有不會立即把勝利送給玩家的號碼，淘汰所有立即敗著。
+      const safeAnalyzed = analyzed.filter((item) => !item.outcome.aiLosesImmediately);
+      const candidateItems = safeAnalyzed.length > 0 ? safeAnalyzed : analyzed;
+      if (candidateItems.length === 0) return availableNums[0] ?? null;
+
+      // 入門 AI 仍採隨機策略，但不會在有安全選擇時主動送出立即敗著。
+      if (state.aiDifficulty === 'random') {
+        return candidateItems[Math.floor(Math.random() * candidateItems.length)].num;
+      }
+
+      const lineWeights = [1, 8, 30, 120, 1000];
+      const playerCalledCoords = [];
+      state.callHistory.forEach((h) => {
+        if (h.caller === 'player') {
+          const pIdx = state.playerBoard.indexOf(h.num);
+          if (pIdx !== -1) playerCalledCoords.push({ r: Math.floor(pIdx / 5), c: pIdx % 5 });
+        }
+      });
+
+      let bestScore = -Infinity;
+      let bestCandidates = [];
+
+      for (const item of candidateItems) {
+        const num = item.num;
+        const outcome = item.outcome;
+        const aiIdx = state.aiBoard.indexOf(num);
+        if (aiIdx < 0) continue;
+        let score = 0;
+
+        for (const line of WIN_LINES) {
+          if (!line.includes(aiIdx)) continue;
+          let markedInLine = 0;
+          for (const cell of line) {
+            if (state.calledMap.has(state.aiBoard[cell])) markedInLine++;
+          }
+          if (markedInLine < 5) score += lineWeights[markedInLine];
+        }
+
+        score += CELL_LINE_DEGREE[aiIdx] * 4;
+        // 實際模擬結果納入評分：增加自己的完成線，並避免替玩家增加過多完成線。
+        const currentAiLines = evaluateBoardLines(state.aiBoard, state.calledMap).completedLines.length;
+        const currentPlayerLines = evaluateBoardLines(state.playerBoard, state.calledMap).completedLines.length;
+        score += (outcome.aiLines - currentAiLines) * 5000;
+        score -= (outcome.playerLines - currentPlayerLines) * 4200;
+
+        if (score < 900 && playerCalledCoords.length > 0) {
+          const pIdx = state.playerBoard.indexOf(num);
+          if (pIdx >= 0) {
+            const pr = Math.floor(pIdx / 5);
+            const pc = pIdx % 5;
+            let heatPenalty = 0;
+            for (const hot of playerCalledCoords) {
+              if (hot.r === pr || hot.c === pc || Math.abs(hot.r - pr) === Math.abs(hot.c - pc)) heatPenalty += 2.5;
+            }
+            score -= heatPenalty;
+          }
+        }
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestCandidates = [num];
+        } else if (Math.abs(score - bestScore) < 0.01) {
+          bestCandidates.push(num);
+        }
+      }
+
+      if (bestCandidates.length === 0) return candidateItems[0]?.num ?? availableNums[0] ?? null;
+      return bestCandidates[Math.floor(Math.random() * bestCandidates.length)] ?? candidateItems[0]?.num ?? null;
+    }
+
+    /**
+     * =========================================================================
+     * 7. 最佳喊號提示（玩家端期望值計算）
+     * =========================================================================
+     */
+    function showBestMoveHint() {
+      if (state.phase !== 'battle' || state.isAiThinking || state.currentTurn !== 'player') return;
+
+      const lineWeights = [1, 8, 30, 120, 1000];
+      let bestScore = -Infinity;
+      let bestNum = null;
+      let bestLinesDetail = '';
+
+      for (let idx = 0; idx < 25; idx++) {
+        const num = state.playerBoard[idx];
+        if (state.calledMap.has(num)) continue;
+
+        let score = CELL_LINE_DEGREE[idx] * 4;
+        let tenpaiCount = 0;
+        let threeCount = 0;
+
+        for (const line of WIN_LINES) {
+          if (!line.includes(idx)) continue;
+          let marked = 0;
+          for (const c of line) {
+            if (state.calledMap.has(state.playerBoard[c])) marked++;
+          }
+          if (marked < 5) {
+            score += lineWeights[marked];
+            if (marked === 4) tenpaiCount++;
+            if (marked === 3) threeCount++;
+          }
+        }
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestNum = num;
+          if (tenpaiCount > 0) {
+            bestLinesDetail = `可立即完成 ${tenpaiCount} 條連線！`;
+          } else if (threeCount > 0) {
+            bestLinesDetail = `可同時推進 ${threeCount} 條線進入「聽牌」狀態！`;
+          } else {
+            bestLinesDetail = `橫跨 ${CELL_LINE_DEGREE[idx]} 條潛在連線，戰略價值最高。`;
+          }
+        }
+      }
+
+      if (bestNum !== null) {
+        state.hintNumber = bestNum;
+        showFeedback(`💡 最佳喊號建議：【${bestNum} 號】— ${bestLinesDetail}`);
+        announceLive(`最佳喊號建議為 ${bestNum} 號，${bestLinesDetail}`);
+        updateUI();
+      }
+    }
+
+    /**
+     * =========================================================================
+     * 8. 勝負結算與設定控制
+     * =========================================================================
+     */
+    function handleGameOver(outcome, playerLines, aiLines) {
+      if (state.phase !== 'gameover') return;
+      if (!state.resultRecorded) {
+        state.resultRecorded = true;
+        if (outcome !== 'draw') recordGameResult(state.aiDifficulty, outcome === 'player-win');
+      }
+
+      const modal = document.getElementById('gameOverModal');
+      const badge = document.getElementById('modalIconBadge');
+      const title = document.getElementById('modalTitle');
+      const subtitle = document.getElementById('modalSubtitle');
+      const scoreSummary = document.getElementById('modalScoreSummary');
+      const callsSummary = document.getElementById('modalCallsSummary');
+
+      if (outcome === 'draw') {
+        badge.textContent = '和';
+        badge.className = 'modal-seal lose';
+        title.textContent = '和局！可用號碼已全部喊完';
+        subtitle.textContent = `本局以和局結束。我方 ${playerLines} 線，電腦 ${aiLines} 線。`;
+        announceLive(`對局結束，本局和局。我方 ${playerLines} 線，電腦 ${aiLines} 線`);
+      } else if (outcome === 'player-win') {
+        badge.textContent = '勝';
+        badge.className = 'modal-seal';
+        title.textContent = 'Bingo！恭喜獲勝！';
+        subtitle.textContent = `你率先連成 ${playerLines} 條線取得勝利！右側電腦迷霧盤面已全數揭曉，歡迎檢視復盤。`;
+        announceLive(`Bingo！恭喜你以 ${playerLines} 條線獲勝`);
+      } else {
+        badge.textContent = '惜';
+        badge.className = 'modal-seal lose';
+        title.textContent = '惜敗！電腦率先達成連線';
+        subtitle.textContent = `電腦率先連成了 ${aiLines} 條線。點擊「檢視揭曉盤面」可查看電腦的數字配置！`;
+        announceLive(`對局結束，電腦以 ${aiLines} 條線獲勝`);
+      }
+
+      scoreSummary.textContent = `我方 ${playerLines} 線 vs 電腦 ${aiLines} 線`;
+      callsSummary.textContent = `共 ${state.callHistory.length} 手`;
+
+      modal.classList.add('open');
+    }
+
+    function closeGameOverModal() {
+      document.getElementById('gameOverModal').classList.remove('open');
+    }
+
+    function openRulesModal() {
+      document.getElementById('rulesModal').classList.add('open');
+    }
+
+    function closeRulesModal() {
+      document.getElementById('rulesModal').classList.remove('open');
+    }
+
+    function setTargetLines(lines) {
+      if (state.phase !== 'setup' || (lines !== 3 && lines !== 5)) return;
+      state.targetLines = lines;
+      document.getElementById('target-3')?.classList.toggle('active', lines === 3);
+      document.getElementById('target-5')?.classList.toggle('active', lines === 5);
+      updateUI();
+    }
+
+    function setAiDifficulty(diff) {
+      if (state.phase !== 'setup' || (diff !== 'smart' && diff !== 'random')) return;
+      if (state.phase === 'battle') return;
+      state.aiDifficulty = diff;
+      document.getElementById('ai-smart').classList.toggle('active', diff === 'smart');
+      document.getElementById('ai-random').classList.toggle('active', diff === 'random');
+
+      const note = document.getElementById('aiModeNote');
+      if (diff === 'smart') {
+        note.innerHTML = '<strong>V3 進階策略 AI：</strong>即時計算 12 條連線期望值權重（聽牌 +1000、三連 +120），優先搶佔多線交會要點並規避玩家熱門路線。';
+      } else {
+        note.innerHTML = '<strong>入門隨機 AI：</strong>從尚未喊過的數字中完全隨機挑選喊出，適合輕鬆體驗賓果樂趣。';
+      }
+    }
+
+    function setFirstTurn(first) {
+      if (state.phase !== 'setup' || (first !== 'player' && first !== 'ai')) return;
+      if (state.phase === 'battle') return;
+      state.firstTurn = first;
+      document.getElementById('first-player').classList.toggle('active-dark', first === 'player');
+      document.getElementById('first-ai').classList.toggle('active-dark', first === 'ai');
+    }
+
+    function resetToSetup() {
+      invalidateAsyncTasks(); closeGameOverModal();
+      state.phase = 'setup'; state.currentTurn = state.firstTurn;
+      state.isAiThinking = false; state.resultRecorded = false;
+      state.calledMap = new Map(); state.callHistory = []; state.hintNumber = null;
+      state.aiBoard = Array(25).fill(0);
+      if (getSmallestMissingNumber(state.playerBoard) !== null) state.playerBoard = generateShuffled1To25();
+      showFeedback('賽前佈局階段：可調整數字排列或直接點擊「⚔ 開始對戰」');
+      announceLive('已回到賽前佈局階段'); updateUI();
+    }
+
+    /**
+     * =========================================================================
+     * 9. SVG 連線繪製與全畫面同步渲染
+     * =========================================================================
+     */
+    function renderWinLinesSvg(svgId, completedLineIndices, isAi) {
+      const svg = document.getElementById(svgId);
+      if (!svg) return;
+      svg.innerHTML = '';
+
+      const ns = 'http://www.w3.org/2000/svg';
+      completedLineIndices.forEach((lineIdx) => {
+        const lineCells = WIN_LINES[lineIdx];
+        const first = lineCells[0];
+        const last = lineCells[4];
+
+        // 5x5 網格中心座標映射 (0..4 -> 50, 150, 250, 350, 450)
+        const x1 = (first % 5) * 100 + 50;
+        const y1 = Math.floor(first / 5) * 100 + 50;
+        const x2 = (last % 5) * 100 + 50;
+        const y2 = Math.floor(last / 5) * 100 + 50;
+
+        const el = document.createElementNS(ns, 'line');
+        el.setAttribute('x1', x1);
+        el.setAttribute('y1', y1);
+        el.setAttribute('x2', x2);
+        el.setAttribute('y2', y2);
+        el.setAttribute('class', `bingo-win-stroke${isAi ? ' ai-stroke' : ''}`);
+        svg.appendChild(el);
+      });
+    }
+
+    function updateUI() {
+      const isSetup = state.phase === 'setup';
+      const isBattle = state.phase === 'battle';
+      const isGameOver = state.phase === 'gameover';
+
+      // 1. 頂部與左側設定區狀態
+      document.getElementById('settingsLockGroup').classList.toggle('disabled-block', isBattle);
+      document.getElementById('hintBtn').disabled = !(isBattle && !state.isAiThinking && state.currentTurn === 'player');
+
+      const phaseDot = document.getElementById('phaseDot');
+      const phaseTitle = document.getElementById('phaseTitleText');
+      if (isSetup) {
+        phaseDot.className = 'phase-dot';
+        phaseTitle.textContent = '賽前佈局階段';
+      } else if (isBattle) {
+        phaseDot.className = 'phase-dot battle';
+        phaseTitle.textContent = state.currentTurn === 'player' ? '對戰中 · 輪到你喊號' : '對戰中 · 電腦思考中';
+      } else {
+        phaseDot.className = 'phase-dot';
+        phaseTitle.textContent = '對局結束 · 盤面已揭曉';
+      }
+
+      // 2. 賽前佈局工具列顯示與待填數字檢查
+      const setupToolbar = document.getElementById('setupToolbar');
+      setupToolbar.classList.toggle('hidden', !isSetup);
+
+      if (isSetup) {
+        const missing = getSmallestMissingNumber(state.playerBoard);
+        const filledCount = state.playerBoard.filter((n) => n > 0).length;
+        const statusPill = document.getElementById('nextFillStatus');
+        const startBtn = document.getElementById('startBattleBtn');
+
+        if (missing === null) {
+          statusPill.textContent = '盤面已就緒（25/25）';
+          startBtn.disabled = false;
+        } else {
+          statusPill.textContent = `待填數字：${missing}（已填 ${filledCount}/25）`;
+          startBtn.disabled = true;
+        }
+      }
+
+      // 3. 計算雙方連線與聽牌格
+      const playerEval = isSetup
+        ? { completedLines: [], tenpaiIndices: new Set() }
+        : evaluateBoardLines(state.playerBoard, state.calledMap);
+
+      const aiEval = isSetup
+        ? { completedLines: [], tenpaiIndices: new Set() }
+        : evaluateBoardLines(state.aiBoard, state.calledMap);
+
+      document.getElementById('playerLineCount').textContent = playerEval.completedLines.length;
+      document.getElementById('playerTargetDisplay').textContent = state.targetLines;
+      document.getElementById('playerTenpaiTag').classList.toggle('visible', isBattle && playerEval.tenpaiIndices.size > 0);
+
+      document.getElementById('aiLineCount').textContent = aiEval.completedLines.length;
+      document.getElementById('aiTargetDisplay').textContent = state.targetLines;
+      document.getElementById('aiTenpaiTag').classList.toggle('visible', isBattle && aiEval.tenpaiIndices.size > 0);
+      document.getElementById('aiBoardTitleText').textContent = isGameOver ? '🤖 電腦盤面（已揭曉）' : '🤖 電腦盤面（迷霧）';
+
+      // 4. 渲染玩家 5x5 格子
+      const playerGrid = document.getElementById('playerGrid');
+      playerGrid.innerHTML = '';
+
+      for (let i = 0; i < 25; i++) {
+        const val = state.playerBoard[i];
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'bingo-cell';
+        if (i === 12) btn.classList.add('center-cell');
+
+        if (isSetup) {
+          if (val === 0) {
+            btn.classList.add('setup-empty');
+            btn.textContent = '+';
+            btn.setAttribute('aria-label', `第 ${Math.floor(i / 5) + 1} 列第 ${(i % 5) + 1} 格，空位`);
+          } else {
+            btn.textContent = val;
+            btn.setAttribute('aria-label', `第 ${Math.floor(i / 5) + 1} 列第 ${(i % 5) + 1} 格，數字 ${val}，點擊可清除`);
+          }
+          btn.addEventListener('click', () => handlePlayerCellClick(i));
+        } else {
+          const isMarked = state.calledMap.has(val);
+          const isTenpai = isBattle && !isMarked && playerEval.tenpaiIndices.has(i);
+          const isHint = isBattle && !isMarked && state.hintNumber === val;
+
+          btn.textContent = val;
+          if (isMarked) btn.classList.add('marked');
+          if (isTenpai) btn.classList.add('tenpai-cell');
+          if (isHint) btn.classList.add('hint-cell');
+
+          btn.disabled = !(isBattle && !state.isAiThinking && state.currentTurn === 'player' && !isMarked);
+          btn.setAttribute(
+            'aria-label',
+            `我方 ${val} 號${isMarked ? '（已圈選）' : isTenpai ? '（聽牌關鍵格）' : ''}`
+          );
+          btn.addEventListener('click', () => handlePlayerCellClick(i));
+        }
+
+        playerGrid.appendChild(btn);
+      }
+
+      // 5. 渲染電腦 5x5 迷霧格子
+      const aiGrid = document.getElementById('aiGrid');
+      aiGrid.innerHTML = '';
+
+      for (let i = 0; i < 25; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'bingo-cell ai-cell';
+        btn.disabled = true;
+
+        if (isSetup) {
+          btn.classList.add('fog-hidden');
+          btn.textContent = '?';
+          btn.setAttribute('aria-label', '電腦迷霧格');
+        } else {
+          const val = state.aiBoard[i];
+          const isMarked = state.calledMap.has(val);
+          const isTenpai = isBattle && !isMarked && aiEval.tenpaiIndices.has(i);
+
+          if (isGameOver) {
+            // 結算時全面揭曉電腦盤面
+            btn.textContent = val;
+            if (isMarked) btn.classList.add('marked');
+            btn.setAttribute('aria-label', `電腦 ${val} 號${isMarked ? '（已圈選）' : ''}`);
+          } else {
+            // 對戰中隱藏數字，但同步顯示已圈選狀態與聽牌警示
+            if (isMarked) {
+              btn.classList.add('marked');
+              btn.textContent = val; // 已被喊出的數字雙方皆知，直接顯示數字
+              btn.setAttribute('aria-label', `電腦 ${val} 號（已圈選）`);
+            } else {
+              btn.classList.add('fog-hidden');
+              btn.textContent = '?';
+              if (isTenpai) btn.classList.add('tenpai-cell');
+              btn.setAttribute('aria-label', isTenpai ? '電腦迷霧聽牌格' : '電腦迷霧未知格');
+            }
+          }
+        }
+
+        aiGrid.appendChild(btn);
+      }
+
+      // 6. 繪製達成連線的 SVG 高亮線
+      renderWinLinesSvg('playerLinesSvg', playerEval.completedLines, false);
+      renderWinLinesSvg('aiLinesSvg', aiEval.completedLines, true);
+
+      // 7. 更新 1～25 號碼總覽追蹤表
+      renderNumberPool();
+
+      // 8. 更新叫號歷史紀錄
+      renderCallHistory();
+    }
+
+    function renderNumberPool() {
+      const poolEl = document.getElementById('numberPoolGrid');
+      poolEl.innerHTML = '';
+
+      for (let num = 1; num <= 25; num++) {
+        const chip = document.createElement('div');
+        chip.className = 'pool-chip';
+        chip.textContent = num;
+
+        const caller = state.calledMap.get(num);
+        if (caller === 'player') {
+          chip.classList.add('called-player');
+        } else if (caller === 'ai') {
+          chip.classList.add('called-ai');
+        }
+
+        poolEl.appendChild(chip);
+      }
+    }
+
+    function renderCallHistory() {
+      const listEl = document.getElementById('callHistoryList');
+      const badgeEl = document.getElementById('callCountBadge');
+      badgeEl.textContent = `已喊 ${state.callHistory.length} / 25`;
+
+      if (state.callHistory.length === 0) {
+        listEl.innerHTML = '<div class="history-empty">完成賽前佈局並點擊「開始對戰」後顯示紀錄</div>';
+        return;
+      }
+
+      listEl.innerHTML = state.callHistory
+        .slice()
+        .reverse()
+        .map((item) => {
+          const isPlayer = item.caller === 'player';
+          const tagClass = isPlayer ? 'caller-badge player' : 'caller-badge ai';
+          const tagLabel = isPlayer ? '玩家喊' : '電腦喊';
+
+          return `
+            <div class="history-item">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-family: monospace; color: var(--ink-muted); min-width: 22px;">${item.step}.</span>
+                <span class="${tagClass}">${tagLabel}</span>
+                <span class="called-num-chip">${item.num} 號</span>
+              </div>
+              <span style="font-size: 0.74rem; color: var(--ink-secondary); font-weight: 600;">
+                我 ${item.playerLines} 線 : 電腦 ${item.aiLines} 線
+              </span>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    // 支援 ESC 鍵關閉彈窗
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeGameOverModal();
+        closeRulesModal();
+      }
+    });
+
+    // 初始化啟動
+    window.addEventListener('DOMContentLoaded', () => {
+      clearPendingTimers();
+      state.roundId = 1; state.resultRecorded = false; state.phase = 'setup';
+      state.currentTurn = state.firstTurn; state.isAiThinking = false;
+      state.playerBoard = generateShuffled1To25(); state.aiBoard = Array(25).fill(0);
+      state.calledMap = new Map(); state.callHistory = []; state.hintNumber = null;
+      renderStatsUI(); updateUI();
+    });
+  </script>
+</body>
+</html>
